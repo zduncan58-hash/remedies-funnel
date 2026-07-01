@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Wei Remedies · Dashboard</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:#0f1117; --card:#1a1d27; --card2:#22252f; --border:#2a2d3a;
+  --text:#e4e4e7; --muted:#71717a; --dim:#52525b;
+  --accent:#D4F458; --green:#4ade80; --yellow:#fbbf24; --red:#f87171;
+  --blue:#60a5fa; --gold:#C6A24E;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg); color: var(--text); min-height: 100vh;
+  font-size: 14px;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ═══ LOGIN ═══ */
+#login-screen {
+  display:flex; align-items:center; justify-content:center;
+  min-height:100vh; padding:20px;
+}
+.login-box {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:16px; padding:40px; max-width:380px; width:100%;
+  text-align:center;
+}
+.login-box h1 { font-size:22px; margin-bottom:6px; letter-spacing:-0.01em; }
+.login-box .accent { color:var(--accent); }
+.login-box p { color:var(--muted); font-size:13px; margin-bottom:24px; }
+.login-box input {
+  width:100%; height:48px; background:var(--bg); border:1px solid var(--border);
+  border-radius:10px; color:var(--text); font-size:16px; padding:0 16px;
+  outline:none; margin-bottom:12px;
+}
+.login-box input:focus { border-color:var(--accent); }
+.login-box button {
+  width:100%; height:48px; background:var(--accent); color:#000; border:none;
+  border-radius:10px; font-size:15px; font-weight:700; cursor:pointer;
+  letter-spacing:0.02em;
+}
+.login-box button:hover { opacity:0.92; }
+.login-box button:disabled { opacity:0.5; cursor:wait; }
+.login-error { color:var(--red); font-size:13px; margin-top:12px; }
+
+/* ═══ DASHBOARD ═══ */
+#dashboard { display:none; max-width:1240px; margin:0 auto; padding:20px 16px 60px; }
+.header {
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:14px; margin-bottom:22px;
+}
+.header h1 { font-size:22px; font-weight:700; letter-spacing:-0.01em; }
+.header h1 .accent { color:var(--accent); }
+.header .updated { color:var(--dim); font-size:12px; font-family:ui-monospace, monospace; }
+
+.controls { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.pill {
+  height:34px; padding:0 14px; border-radius:8px;
+  border:1px solid var(--border); background:transparent;
+  color:var(--muted); font-size:13px; cursor:pointer; font-weight:500;
+  transition:all 0.15s; font-family:inherit;
+}
+.pill.active, .pill:hover { background:var(--accent); color:#000; border-color:var(--accent); font-weight:700; }
+.btn-ghost {
+  background:var(--card); border:1px solid var(--border); color:var(--text);
+  cursor:pointer; font-size:13px; padding:0 14px; height:34px;
+  border-radius:8px; font-family:inherit;
+}
+.btn-ghost:hover { border-color:var(--accent); }
+#logout-btn { color:var(--muted); }
+
+/* ═══ KPI CARDS ═══ */
+.kpi-row {
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
+  gap:12px; margin-bottom:22px;
+}
+.kpi {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:12px; padding:18px;
+}
+.kpi .label {
+  font-size:10px; color:var(--muted); text-transform:uppercase;
+  letter-spacing:0.08em; margin-bottom:8px; font-weight:600;
+}
+.kpi .value { font-size:28px; font-weight:800; letter-spacing:-0.02em; }
+.kpi .sub { font-size:11px; color:var(--dim); margin-top:4px; }
+.kpi.hot .value { color:var(--accent); }
+.kpi.warn .value { color:var(--yellow); }
+.kpi.err .value { color:var(--red); }
+.kpi.good .value { color:var(--green); }
+
+/* ═══ SECTIONS ═══ */
+.section {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:14px; padding:22px; margin-bottom:16px;
+}
+.section h2 {
+  font-size:15px; font-weight:600; margin-bottom:18px;
+  display:flex; align-items:center; gap:10px;
+}
+.section h2 .badge {
+  font-size:10px; background:var(--card2); padding:3px 8px;
+  border-radius:6px; color:var(--muted); font-weight:500; letter-spacing:0.05em;
+  text-transform:uppercase;
+}
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media (max-width: 780px) { .grid-2 { grid-template-columns:1fr; } }
+
+/* ═══ FUNNEL ═══ */
+.funnel-step {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 0; border-bottom:1px solid var(--border);
+}
+.funnel-step:last-child { border-bottom:none; }
+.funnel-step .name { font-size:14px; flex:1; }
+.funnel-step .count { font-size:17px; font-weight:700; min-width:60px; text-align:right; font-variant-numeric:tabular-nums; }
+.funnel-step .rate {
+  font-size:13px; min-width:80px; text-align:right;
+  padding-left:12px; font-weight:600;
+}
+.rate-good { color:var(--green); }
+.rate-warn { color:var(--yellow); }
+.rate-bad  { color:var(--red); }
+
+/* ═══ BREAKDOWN TABLES ═══ */
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th {
+  text-align:left; color:var(--muted); font-weight:600; font-size:10px;
+  text-transform:uppercase; letter-spacing:0.08em;
+  padding:8px 10px; border-bottom:1px solid var(--border);
+}
+td { padding:10px; border-bottom:1px solid var(--border); }
+tr:last-child td { border-bottom:none; }
+.num { text-align:right; font-variant-numeric:tabular-nums; }
+.bar-wrap { display:flex; align-items:center; gap:10px; }
+.bar {
+  flex:1; height:6px; background:var(--card2); border-radius:3px;
+  overflow:hidden; min-width:40px;
+}
+.bar-fill { height:100%; background:var(--accent); border-radius:3px; transition:width 0.3s; }
+
+/* ═══ HEATMAP ═══ */
+.heatmap-grid {
+  display:grid; grid-template-columns:repeat(24, 1fr); gap:3px;
+}
+.heat-cell {
+  border-radius:4px; padding:8px 2px; text-align:center;
+  font-size:9px; min-height:48px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:3px;
+  background: rgba(212, 244, 88, 0.06);
+  color: var(--dim);
+}
+.heat-cell .h-label { font-weight:600; font-size:10px; }
+.heat-cell .h-val   { font-size:11px; opacity:0.95; font-weight:600; }
+.heat-cell.busy { color: var(--text); }
+
+/* ═══ DAILY TREND ═══ */
+.trend-grid {
+  display:grid; grid-template-columns:repeat(14, 1fr); gap:5px;
+  align-items:end;
+}
+.trend-day { text-align:center; }
+.trend-day .bar-v {
+  background: linear-gradient(to top, var(--accent), var(--green));
+  border-radius:4px 4px 0 0; margin:0 auto;
+  width:100%; min-height:2px;
+}
+.trend-day .val { font-size:11px; font-weight:600; margin-top:4px; }
+.trend-day .lbl { font-size:9px; color:var(--dim); margin-top:2px; }
+
+/* ═══ SESSIONS TABLE ═══ */
+.sessions-table td { font-size:12px; }
+.sess-id {
+  font-family: ui-monospace, monospace; font-size:11px;
+  color:var(--muted); max-width:100px; overflow:hidden; text-overflow:ellipsis;
+}
+.pill-tag {
+  display:inline-block; padding:2px 8px; background:var(--card2);
+  border-radius:4px; font-size:10px; color:var(--muted); letter-spacing:0.03em;
+}
+.pill-tag.hot { background: rgba(212,244,88,0.12); color: var(--accent); }
+
+.empty {
+  text-align:center; color:var(--muted); padding:30px; font-size:13px;
+}
+.loading {
+  text-align:center; padding:60px; color:var(--muted); font-size:13px;
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN SCREEN ═══ -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>Wei Remedies <span class="accent">·</span> Dashboard</h1>
+    <p>Enter password to continue</p>
+    <form id="login-form" autocomplete="off">
+      <input type="password" id="password" placeholder="Password" required autofocus>
+      <button type="submit" id="login-btn">Sign in</button>
+    </form>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ═══ DASHBOARD ═══ -->
+<div id="dashboard">
+  <div class="header">
+    <div>
+      <h1>Wei Remedies <span class="accent">·</span> <span id="period-label">Today</span></h1>
+      <div class="updated" id="last-updated"></div>
+    </div>
+    <div class="controls">
+      <button class="pill active" data-period="today">Today</button>
+      <button class="pill" data-period="7d">7d</button>
+      <button class="pill" data-period="30d">30d</button>
+      <button class="pill" data-period="all">All</button>
+      <button class="btn-ghost" id="refresh-btn">↻ Refresh</button>
+      <button class="btn-ghost" id="logout-btn">Log out</button>
+    </div>
+  </div>
+
+  <div id="loading" class="loading">Loading data…</div>
+
+  <div id="content" style="display:none;">
+
+    <!-- KPI CARDS -->
+    <div class="kpi-row">
+      <div class="kpi hot">
+        <div class="label">Sessions</div>
+        <div class="value" id="kpi-sessions">–</div>
+        <div class="sub" id="kpi-sessions-sub">unique visitors</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Page Views</div>
+        <div class="value" id="kpi-views">–</div>
+        <div class="sub" id="kpi-views-sub">total loads</div>
+      </div>
+      <div class="kpi good">
+        <div class="label">CTA Clicks</div>
+        <div class="value" id="kpi-clicks">–</div>
+        <div class="sub" id="kpi-clicks-sub">buy-button taps</div>
+      </div>
+      <div class="kpi warn">
+        <div class="label">Click Rate</div>
+        <div class="value" id="kpi-rate">–</div>
+        <div class="sub">views → clicks</div>
+      </div>
+      <div class="kpi">
+        <div class="label">CTAs / Session</div>
+        <div class="value" id="kpi-per-session">–</div>
+        <div class="sub">click intensity</div>
+      </div>
+      <div class="kpi err">
+        <div class="label">JS Errors</div>
+        <div class="value" id="kpi-errors">–</div>
+        <div class="sub">page bugs</div>
+      </div>
+    </div>
+
+    <!-- FUNNEL + CTA BREAKDOWN -->
+    <div class="grid-2">
+      <div class="section">
+        <h2>Funnel <span class="badge">this period</span></h2>
+        <div id="funnel"></div>
+      </div>
+      <div class="section">
+        <h2>CTA Clicks by Position <span class="badge">where they buy</span></h2>
+        <div id="cta-breakdown"><div class="empty">No CTA clicks yet.</div></div>
+      </div>
+    </div>
+
+    <!-- HOURLY HEATMAP -->
+    <div class="section">
+      <h2>Activity by Hour (UTC) <span class="badge">24h heatmap</span></h2>
+      <div class="heatmap-grid" id="heatmap"></div>
+    </div>
+
+    <!-- DAILY TREND -->
+    <div class="section">
+      <h2>Daily Trend <span class="badge">last 14 days</span></h2>
+      <div class="trend-grid" id="daily-trend"></div>
+    </div>
+
+    <!-- TRAFFIC SOURCES + COUNTRIES -->
+    <div class="grid-2">
+      <div class="section">
+        <h2>Traffic Sources <span class="badge">by UTM</span></h2>
+        <div id="utm-breakdown"><div class="empty">No traffic yet.</div></div>
+      </div>
+      <div class="section">
+        <h2>Countries <span class="badge">top 10</span></h2>
+        <div id="country-breakdown"><div class="empty">No countries yet.</div></div>
+      </div>
+    </div>
+
+    <!-- DEVICE SPLIT + DEBUG -->
+    <div class="grid-2">
+      <div class="section">
+        <h2>Device Split</h2>
+        <div id="device-breakdown"><div class="empty">No devices yet.</div></div>
+      </div>
+      <div class="section">
+        <h2>Debug</h2>
+        <div id="debug-info" style="font-family: ui-monospace, monospace; font-size:11px; color: var(--muted); line-height:1.7;"></div>
+      </div>
+    </div>
+
+    <!-- RECENT SESSIONS -->
+    <div class="section">
+      <h2>Recent Sessions <span class="badge">last 25</span></h2>
+      <table class="sessions-table" id="sessions-table">
+        <thead>
+          <tr>
+            <th>Session</th>
+            <th>Country</th>
+            <th>Device</th>
+            <th>Source</th>
+            <th class="num">Events</th>
+            <th class="num">CTAs</th>
+            <th>Last Seen</th>
+          </tr>
+        </thead>
+        <tbody id="sessions-body"></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function() {
+  var currentPeriod = 'today';
+  var lastData = null;
+
+  // ── Login ──
+  document.getElementById('login-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var pw = document.getElementById('password').value;
+    var btn = document.getElementById('login-btn');
+    var err = document.getElementById('login-error');
+    err.textContent = '';
+    btn.disabled = true;
+    btn.textContent = 'Signing in…';
+
+    fetch('/api/dashboard/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw })
+    }).then(function(r) { return r.json().then(function(j) { return { status: r.status, body: j }; }); })
+      .then(function(res) {
+        if (res.status === 200 && res.body.ok) {
+          document.getElementById('login-screen').style.display = 'none';
+          document.getElementById('dashboard').style.display = 'block';
+          loadData(currentPeriod);
+        } else {
+          err.textContent = res.body.error || 'Invalid password';
+          btn.disabled = false;
+          btn.textContent = 'Sign in';
+        }
+      }).catch(function(e) {
+        err.textContent = 'Network error: ' + e.message;
+        btn.disabled = false;
+        btn.textContent = 'Sign in';
+      });
+  });
+
+  // ── Try session-based auto login by calling summary immediately ──
+  fetch('/api/dashboard/summary?period=today', { credentials: 'same-origin' })
+    .then(function(r) {
+      if (r.status === 200) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        return r.json().then(function(data) { renderAll(data); });
+      }
+    }).catch(function() {});
+
+  // ── Period pill switching ──
+  document.querySelectorAll('.pill[data-period]').forEach(function(p) {
+    p.addEventListener('click', function() {
+      document.querySelectorAll('.pill[data-period]').forEach(function(x) { x.classList.remove('active'); });
+      p.classList.add('active');
+      currentPeriod = p.getAttribute('data-period');
+      document.getElementById('period-label').textContent = p.textContent;
+      loadData(currentPeriod);
+    });
+  });
+
+  // ── Refresh + logout ──
+  document.getElementById('refresh-btn').addEventListener('click', function() { loadData(currentPeriod); });
+  document.getElementById('logout-btn').addEventListener('click', function() {
+    fetch('/api/dashboard/logout', { method: 'POST' }).finally(function() { location.reload(); });
+  });
+
+  function loadData(period) {
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('content').style.display = 'none';
+    fetch('/api/dashboard/summary?period=' + encodeURIComponent(period), { credentials: 'same-origin' })
+      .then(function(r) {
+        if (r.status === 401) { location.reload(); return; }
+        return r.json();
+      })
+      .then(function(data) {
+        if (!data) return;
+        renderAll(data);
+      }).catch(function(e) {
+        document.getElementById('loading').textContent = 'Error: ' + e.message;
+      });
+  }
+
+  function renderAll(data) {
+    lastData = data;
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+    document.getElementById('last-updated').textContent =
+      'Updated: ' + new Date(data.generated_at).toLocaleString() + ' · ' + data.event_count + ' events';
+
+    setKPI('kpi-sessions', data.sessions_count, data.sessions_count + ' unique');
+    setKPI('kpi-views', data.page_views, data.page_views + ' loads');
+    setKPI('kpi-clicks', data.cta_clicks, data.cta_clicks + ' clicks');
+    setKPI('kpi-rate', data.cta_click_rate + '%');
+    setKPI('kpi-per-session', data.ctas_per_session);
+    setKPI('kpi-errors', data.js_errors);
+
+    renderFunnel(data);
+    renderBreakdown('cta-breakdown', data.by_cta_location, 'CTA Position', 'Clicks', humanCta);
+    renderBreakdown('utm-breakdown', data.by_utm_source, 'Source', 'Events');
+    renderBreakdown('country-breakdown', data.by_country.slice(0, 10), 'Country', 'Events');
+    renderBreakdown('device-breakdown', data.by_device, 'Device', 'Events');
+    renderHeatmap(data.hourly);
+    renderDaily(data.daily);
+    renderSessions(data.recent_sessions);
+
+    document.getElementById('debug-info').innerHTML =
+      'Period: <b>' + data.period + '</b><br>' +
+      'Events: ' + data.event_count + '<br>' +
+      'Sessions: ' + data.sessions_count + '<br>' +
+      'Page views: ' + data.page_views + '<br>' +
+      'CTA clicks: ' + data.cta_clicks + '<br>' +
+      'CTA fallbacks: ' + data.cta_fallbacks + '<br>' +
+      'Checkout prefills: ' + data.checkout_prefills + '<br>' +
+      'JS errors: ' + data.js_errors;
+  }
+
+  function setKPI(id, val, sub) {
+    var el = document.getElementById(id); if (!el) return;
+    el.textContent = (val === null || val === undefined) ? '–' : val;
+    if (sub) {
+      var s = document.getElementById(id + '-sub');
+      if (s) s.textContent = sub;
+    }
+  }
+
+  function renderFunnel(d) {
+    var steps = [
+      { name: 'Page views', count: d.page_views, denom: null },
+      { name: 'CTA clicks', count: d.cta_clicks, denom: d.page_views },
+      { name: 'Checkout country pre-fill', count: d.checkout_prefills, denom: d.cta_clicks }
+    ];
+    var html = '';
+    for (var i = 0; i < steps.length; i++) {
+      var s = steps[i];
+      var rate = '';
+      if (s.denom !== null && s.denom > 0) {
+        var pct = +(s.count / s.denom * 100).toFixed(1);
+        var cls = pct > 20 ? 'rate-good' : pct > 5 ? 'rate-warn' : 'rate-bad';
+        rate = '<span class="rate ' + cls + '">' + pct + '%</span>';
+      }
+      html += '<div class="funnel-step"><span class="name">' + s.name + '</span>'
+            + '<span class="count">' + s.count + '</span>' + rate + '</div>';
+    }
+    document.getElementById('funnel').innerHTML = html;
+  }
+
+  function renderBreakdown(elId, rows, keyLabel, valLabel, mapKey) {
+    var el = document.getElementById(elId);
+    if (!rows || !rows.length) {
+      el.innerHTML = '<div class="empty">No data yet.</div>';
+      return;
+    }
+    var max = rows[0].count || 1;
+    var html = '<table><thead><tr><th>' + keyLabel + '</th><th class="num">' + valLabel + '</th><th class="num">%</th></tr></thead><tbody>';
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      var displayKey = mapKey ? mapKey(r.key) : r.key;
+      var w = Math.max(2, (r.count / max) * 100);
+      html += '<tr>'
+        + '<td>' + escapeHtml(displayKey) + '</td>'
+        + '<td class="num"><div class="bar-wrap"><div class="bar"><div class="bar-fill" style="width:' + w + '%"></div></div><span>' + r.count + '</span></div></td>'
+        + '<td class="num">' + r.pct + '%</td>'
+        + '</tr>';
+    }
+    html += '</tbody></table>';
+    el.innerHTML = html;
+  }
+
+  function humanCta(key) {
+    var map = {
+      'hero': 'Hero (above fold)',
+      'price-block': 'Price block',
+      'after-recipe-1': 'After Recipe 1',
+      'after-recipe-2': 'After Recipe 2',
+      'after-recipe-3': 'After Recipe 3',
+      'value-stack': 'Value stack',
+      'after-social-proof': 'After social proof',
+      'final': 'Final CTA (bottom)',
+      'sticky': 'Sticky mobile bar'
+    };
+    return map[key] || key;
+  }
+
+  function renderHeatmap(hourly) {
+    var max = Math.max.apply(null, hourly);
+    var html = '';
+    for (var h = 0; h < 24; h++) {
+      var val = hourly[h] || 0;
+      var intensity = max > 0 ? val / max : 0;
+      var alpha = 0.06 + intensity * 0.9;
+      var cls = 'heat-cell' + (val > 0 ? ' busy' : '');
+      html += '<div class="' + cls + '" style="background: rgba(212, 244, 88, ' + alpha.toFixed(2) + ')">'
+            + '<div class="h-label">' + String(h).padStart(2,'0') + 'h</div>'
+            + '<div class="h-val">' + val + '</div></div>';
+    }
+    document.getElementById('heatmap').innerHTML = html;
+  }
+
+  function renderDaily(daily) {
+    var max = 1;
+    for (var i = 0; i < daily.length; i++) if (daily[i].count > max) max = daily[i].count;
+    var html = '';
+    for (var i = 0; i < daily.length; i++) {
+      var d = daily[i];
+      var h = Math.max(2, (d.count / max) * 60);
+      var lbl = d.date.slice(5);
+      html += '<div class="trend-day">'
+            + '<div class="bar-v" style="height:' + h + 'px"></div>'
+            + '<div class="val">' + d.count + '</div>'
+            + '<div class="lbl">' + lbl + '</div></div>';
+    }
+    document.getElementById('daily-trend').innerHTML = html;
+  }
+
+  function renderSessions(rows) {
+    var body = document.getElementById('sessions-body');
+    if (!rows || !rows.length) { body.innerHTML = '<tr><td colspan="7" class="empty">No sessions yet.</td></tr>'; return; }
+    var html = '';
+    for (var i = 0; i < rows.length; i++) {
+      var s = rows[i];
+      var last = s.last_ts ? new Date(s.last_ts).toLocaleString() : '–';
+      var ctaCls = s.cta_clicks > 0 ? 'pill-tag hot' : 'pill-tag';
+      html += '<tr>'
+        + '<td><span class="sess-id">' + escapeHtml((s.session_id||'').slice(0,12)) + '…</span></td>'
+        + '<td>' + escapeHtml(s.country || '–') + '</td>'
+        + '<td>' + escapeHtml(s.device || '–') + '</td>'
+        + '<td>' + escapeHtml(s.utm_source || '(direct)') + '</td>'
+        + '<td class="num">' + s.events + '</td>'
+        + '<td class="num"><span class="' + ctaCls + '">' + s.cta_clicks + '</span></td>'
+        + '<td>' + last + '</td>'
+        + '</tr>';
+    }
+    body.innerHTML = html;
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+})();
+</script>
+</body>
+</html>
