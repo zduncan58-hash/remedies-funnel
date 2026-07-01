@@ -14,6 +14,8 @@
 <link rel="preconnect" href="https://player.vimeo.com">
 <link rel="preconnect" href="https://checkout.healvex.co" crossorigin>
 <link rel="dns-prefetch" href="https://checkout.healvex.co">
+<!-- Prefetch the checkout URL into browser cache during idle time — cuts click-to-open lag -->
+<link rel="prefetch" href="https://checkout.healvex.co/checkout/buy/fb8eb577-1873-445e-9964-4c41afd7912c" as="document">
 <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
 
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
@@ -1246,6 +1248,27 @@ var VSL_VIMEO_ID = '1206099383';
                    '?autoplay=0&muted=0&controls=1&loop=0&playsinline=1&title=0&byline=0&portrait=0&badge=0&autopause=0&dnt=1&app_id=58479';
     }
   }
+
+  // ── CHECKOUT WARMER — on first user interaction, fire a no-cors fetch to
+  //    fully warm the connection + populate the browser cache so the actual
+  //    click-to-open feels instant. Prefetch <link> above is the first pass;
+  //    this is the aggressive second pass.
+  var checkoutWarmed = false;
+  function warmCheckout() {
+    if (checkoutWarmed) return;
+    checkoutWarmed = true;
+    try {
+      fetch(LEMON_CHECKOUT_URL, {
+        mode: 'no-cors',
+        credentials: 'omit',
+        cache: 'force-cache',
+        priority: 'low'
+      }).catch(function(){});
+    } catch(e) {}
+  }
+  ['scroll', 'touchstart', 'mouseover', 'mousedown', 'pointerdown'].forEach(function(evt) {
+    window.addEventListener(evt, warmCheckout, { once: true, passive: true });
+  });
 
   // ── TRACKING ──
   function getOrCreateSessionId() {

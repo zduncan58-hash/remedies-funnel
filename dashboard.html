@@ -222,6 +222,7 @@ tr:last-child td { border-bottom:none; }
       <button class="pill" data-period="30d">30d</button>
       <button class="pill" data-period="all">All</button>
       <button class="btn-ghost" id="refresh-btn">↻ Refresh</button>
+      <button class="btn-ghost" id="reset-btn" style="color:var(--red); border-color: rgba(248,113,113,0.4);">🗑 Reset</button>
       <button class="btn-ghost" id="logout-btn">Log out</button>
     </div>
   </div>
@@ -392,10 +393,36 @@ tr:last-child td { border-bottom:none; }
     });
   });
 
-  // ── Refresh + logout ──
+  // ── Refresh + logout + reset ──
   document.getElementById('refresh-btn').addEventListener('click', function() { loadData(currentPeriod); });
   document.getElementById('logout-btn').addEventListener('click', function() {
     fetch('/api/dashboard/logout', { method: 'POST' }).finally(function() { location.reload(); });
+  });
+  document.getElementById('reset-btn').addEventListener('click', function() {
+    var confirm1 = window.prompt(
+      'This DELETES all tracked events forever. Cannot be undone.\n\n' +
+      'Type DELETE to confirm:'
+    );
+    if (confirm1 !== 'DELETE') return;
+
+    var btn = document.getElementById('reset-btn');
+    btn.disabled = true;
+    btn.textContent = 'Deleting…';
+    fetch('/api/dashboard/reset', { method: 'POST', credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.ok) {
+          alert('Deleted ' + res.deleted + ' events. Reloading…');
+          loadData(currentPeriod);
+        } else {
+          alert('Reset failed: ' + (res.error || 'unknown error'));
+        }
+      }).catch(function(e) {
+        alert('Reset error: ' + e.message);
+      }).finally(function() {
+        btn.disabled = false;
+        btn.textContent = '🗑 Reset';
+      });
   });
 
   function loadData(period) {
