@@ -222,6 +222,7 @@ tr:last-child td { border-bottom:none; }
       <button class="pill" data-period="30d">30d</button>
       <button class="pill" data-period="all">All</button>
       <button class="btn-ghost" id="refresh-btn">↻ Refresh</button>
+      <button class="btn-ghost" id="export-btn" style="color:var(--accent); border-color: rgba(212,244,88,0.4);">📥 Export CSV</button>
       <button class="btn-ghost" id="reset-btn" style="color:var(--red); border-color: rgba(248,113,113,0.4);">🗑 Reset</button>
       <button class="btn-ghost" id="logout-btn">Log out</button>
     </div>
@@ -393,8 +394,13 @@ tr:last-child td { border-bottom:none; }
     });
   });
 
-  // ── Refresh + logout + reset ──
+  // ── Refresh + logout + reset + export ──
   document.getElementById('refresh-btn').addEventListener('click', function() { loadData(currentPeriod); });
+  document.getElementById('export-btn').addEventListener('click', function() {
+    // Trigger CSV download for the currently selected period
+    var url = '/api/dashboard/export?period=' + encodeURIComponent(currentPeriod);
+    window.location.href = url;
+  });
   document.getElementById('logout-btn').addEventListener('click', function() {
     fetch('/api/dashboard/logout', { method: 'POST' }).finally(function() { location.reload(); });
   });
